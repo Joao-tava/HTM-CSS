@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sistema de Cadastro de Alunos</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="container">
+  <header>
+    <div class="header-icon">🎓</div>
+    <div>
+      <h1>Cadastro de Alunos <span>Sistema de Gerenciamento de Curso</span></h1>
+    </div>
+  </header>
+
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('cadastro')">+ Cadastrar</button>
+    <button class="tab-btn" onclick="switchTab('lista')">📋 Alunos</button>
+    <button class="tab-btn" onclick="switchTab('testes')">🧪 Testes Unitários</button>
+  </div>
+
+  <!-- CADASTRO -->
+  <div class="tab-panel active" id="tab-cadastro">
+    <div class="form-card">
+      <div id="form-mode-label" style="font-size:0.75rem;color:var(--muted);margin-bottom:1.2rem;">NOVO CADASTRO</div>
+      <div class="form-grid">
+        <div class="field full">
+          <label>Nome Completo *</label>
+          <input type="text" id="f-nome" placeholder="Ex: Maria Silva" oninput="clearErr('nome')">
+          <span class="field-error" id="err-nome"></span>
+        </div>
+        <div class="field">
+          <label>Idade *</label>
+          <input type="number" id="f-idade" placeholder="Ex: 20" min="1" max="120" oninput="clearErr('idade')">
+          <span class="field-error" id="err-idade"></span>
+        </div>
+        <div class="field">
+          <label>Email *</label>
+          <input type="text" id="f-email" placeholder="Ex: maria@email.com" oninput="clearErr('email')">
+          <span class="field-error" id="err-email"></span>
+        </div>
+        <div class="field">
+          <label>Nota Final (0–10) *</label>
+          <input type="number" id="f-nota" placeholder="Ex: 7.5" min="0" max="10" step="0.1" oninput="onNotaChange()">
+          <span class="field-error" id="err-nota"></span>
+        </div>
+        <div class="field">
+          <label>Status (calculado automaticamente)</label>
+          <div style="padding:0.65rem 0.9rem;background:var(--surface2);border:1px solid var(--border);border-radius:6px;min-height:2.35rem;display:flex;align-items:center;">
+            <span id="status-preview" style="font-size:0.82rem;color:var(--muted);">Informe a nota para calcular</span>
+          </div>
+        </div>
+      </div>
+      <div class="form-actions">
+        <button class="btn btn-secondary" onclick="resetForm()">Limpar</button>
+        <button class="btn btn-primary" onclick="submitForm()">Salvar Aluno</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- LISTA -->
+  <div class="tab-panel" id="tab-lista">
+    <div class="stats-row">
+      <div class="stat-card stat-total">
+        <span class="stat-label">Total</span>
+        <span class="stat-value" id="stat-total">0</span>
+      </div>
+      <div class="stat-card stat-aprov">
+        <span class="stat-label">Aprovados</span>
+        <span class="stat-value" id="stat-aprov">0</span>
+      </div>
+      <div class="stat-card stat-reprov">
+        <span class="stat-label">Reprovados</span>
+        <span class="stat-value" id="stat-reprov">0</span>
+      </div>
+      <div class="stat-card stat-media">
+        <span class="stat-label">Média Geral</span>
+        <span class="stat-value" id="stat-media">—</span>
+      </div>
+    </div>
+    <div class="list-header">
+      <span class="list-title">Alunos Cadastrados</span>
+      <input class="search-box" type="text" placeholder="🔍  Buscar aluno..." id="search-input" oninput="renderTable()">
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Nome</th>
+            <th>Idade</th>
+            <th>Email</th>
+            <th>Nota</th>
+            <th>Status</th>
+            <th>Ações</th>
+          </tr>
+        </thead>
+        <tbody id="table-body">
+          <tr><td colspan="7"><div class="empty-state"><div class="icon">📭</div>Nenhum aluno cadastrado ainda.</div></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- TESTES -->
+  <div class="tab-panel" id="tab-testes">
+    <button class="test-run-btn" onclick="runTests()">▶ Executar Todos os Testes</button>
+    <div id="test-summary" class="test-summary" style="display:none"></div>
+    <div id="test-results"></div>
+  </div>
+</div>
+
+<!-- Modal Editar -->
+<div class="modal-overlay" id="edit-modal">
+  <div class="modal">
+    <div class="modal-title">✏️ Editar Aluno</div>
+    <div class="form-grid">
+      <div class="field full">
+        <label>Nome Completo *</label>
+        <input type="text" id="e-nome" oninput="clearErr('e-nome')">
+        <span class="field-error" id="err-e-nome"></span>
+      </div>
+      <div class="field">
+        <label>Idade *</label>
+        <input type="number" id="e-idade" min="1" max="120" oninput="clearErr('e-idade')">
+        <span class="field-error" id="err-e-idade"></span>
+      </div>
+      <div class="field">
+        <label>Email *</label>
+        <input type="text" id="e-email" oninput="clearErr('e-email')">
+        <span class="field-error" id="err-e-email"></span>
+      </div>
+      <div class="field">
+        <label>Nota Final (0–10) *</label>
+        <input type="number" id="e-nota" min="0" max="10" step="0.1" oninput="onEditNotaChange()">
+        <span class="field-error" id="err-e-nota"></span>
+      </div>
+      <div class="field">
+        <label>Status</label>
+        <div style="padding:0.65rem 0.9rem;background:var(--surface2);border:1px solid var(--border);border-radius:6px;min-height:2.35rem;display:flex;align-items:center;">
+          <span id="e-status-preview" style="font-size:0.82rem;color:var(--muted);">—</span>
+        </div>
+      </div>
+    </div>
+    <div class="form-actions" style="margin-top:1rem">
+      <button class="btn btn-secondary" onclick="closeModal()">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveEdit()">Salvar Alterações</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="crudzão.js"></script>
+</body>
+</html>
